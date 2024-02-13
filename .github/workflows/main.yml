@@ -39,5 +39,8 @@ jobs:
           yarn test
 
       - name: Run Security Audit
+        # Previously, `yarn audit --groups dependencies` was used, but now the appropriate
+        # subcommand is `yarn npm audit`, with the `--groups` option replaced by `environment`.
+        # See https://yarnpkg.com/cli/npm/audit for more.
         run: |
-          yarn audit --groups dependencies
+          yarn npm audit --environment production
