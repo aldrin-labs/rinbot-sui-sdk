@@ -32,7 +32,6 @@ __metadata:
     "@types/bn.js": "npm:^5.1.1"
     "@types/jest": "npm:^29.5.3"
     "@types/node": "npm:^20.5.0"
-    "@types/redis": "npm:^4.0.11"
     "@typescript-eslint/eslint-plugin": "npm:^5.12.0"
     "@typescript-eslint/parser": "npm:^5.12.0"
     aftermath-ts-sdk: "npm:^1.1.32"
@@ -2000,15 +1999,6 @@ __metadata:
   dependencies:
     undici-types: "npm:~5.26.4"
   checksum: 10c0/6d18cec852f5cfbed3ec42b5c01c026e7a3f9da540d6e3d6738d4cee9979fb308cf27b6df7ba40a6553e7bc82e678f0ef53ba6e6ad52e5b86bd97b7783c2a42c
-  languageName: node
-  linkType: hard
-
-"@types/redis@npm:^4.0.11":
-  version: 4.0.11
-  resolution: "@types/redis@npm:4.0.11"
-  dependencies:
-    redis: "npm:*"
-  checksum: 10c0/a543607ce2fdb8bf0352bbe5f38ae0b48a48737c497e77d9a28240c8d440c1646b191d4e09f9eb2f93753f2a2b66bb8e7009e7ececc1a29e97bbc88beea542f4
   languageName: node
   linkType: hard
 
@@ -7209,7 +7199,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redis@npm:*, redis@npm:^4.6.12":
+"redis@npm:^4.6.12":
   version: 4.6.13
   resolution: "redis@npm:4.6.13"
   dependencies:
