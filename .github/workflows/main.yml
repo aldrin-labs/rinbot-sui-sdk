@@ -35,8 +35,10 @@ jobs:
           yarn build
 
       - name: Run Tests
-        run: |
-          yarn test
+        # Run *only* tests with an increased JS heap size limit
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+        run: yarn test
 
       - name: Run Security Audit
         # Previously, `yarn audit --groups dependencies` was used, but now the appropriate
