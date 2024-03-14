@@ -9,7 +9,6 @@ import { GetTransactionType } from "../transactions/types";
 import BigNumber from "bignumber.js";
 import { isSuiCoinType } from "../providers/utils/isSuiCoinType";
 import { CoinStruct } from "@mysten/sui.js/client";
-import { SUI_DECIMALS } from "..";
 
 /**
  * @class RouteManager
