@@ -1,8 +1,9 @@
 /* eslint-disable require-jsdoc */
 
-import { MoveStruct, SuiParsedData, SuiObjectResponse } from "@mysten/sui.js/client";
-import { DCAContent, DCAContentFields, DCAResponse } from "./types";
+import { MoveStruct, SuiObjectResponse, SuiParsedData } from "@mysten/sui.js/client";
+import BigNumber from "bignumber.js";
 import { TOKEN_ADDRESS_BASE_REGEX } from "../../providers/common";
+import { DCAContent, DCAContentFields, DCAResponse, DCATimescaleToMillisecondsMap } from "./types";
 
 export function isValidDCAFields(fields: MoveStruct): fields is DCAContentFields {
   const expectedKeys: (keyof DCAContentFields)[] = [
@@ -102,4 +103,14 @@ export function hasMinMaxPriceParams(params: {
   maxPrice?: string;
 }): params is { minPrice: string; maxPrice: string } {
   return params.minPrice !== undefined && params.maxPrice !== undefined;
+}
+
+export function getMillisecondsByDcaEveryParams(every: string, timeScale: number): number {
+  const milliseconds = DCATimescaleToMillisecondsMap.get(timeScale);
+
+  if (milliseconds === undefined) {
+    throw new Error();
+  }
+
+  return new BigNumber(every).multipliedBy(milliseconds).toNumber();
 }
