@@ -1,5 +1,6 @@
 /* eslint-disable require-jsdoc */
 
+import { DCAObjectFields } from "../../managers/dca/types";
 import { CommonCoinData } from "../../managers/types";
 import { CetusPathForStorage } from "../../providers/cetus/types";
 import { ShortCoinMetadata } from "../../providers/flowx/types";
@@ -16,7 +17,9 @@ export function isStorageValue(data: unknown): data is StorageValue {
     (isCommonCoinDataArray(data.value) ||
       isCommonPoolDataArray(data.value) ||
       isShortCoinMetadataArray(data.value) ||
-      isShortPoolDataArray(data.value))
+      isShortPoolDataArray(data.value) ||
+      isCetusPathForStorageArray(data.value) ||
+      isDCAObjectFieldsArray(data.value))
   );
 }
 
@@ -100,5 +103,57 @@ export function isCetusPathForStorageArray(data: unknown): data is CetusPathForS
         (pair) =>
           Array.isArray(pair) && pair.length === 2 && typeof pair[0] === "number" && typeof pair[1] === "string",
       ),
+  );
+}
+
+export function isDCAObjectFieldsArray(data: unknown): data is DCAObjectFields[] {
+  if (!Array.isArray(data)) return false;
+
+  return data.every(
+    (item) =>
+      typeof item === "object" &&
+      item !== null &&
+      "active" in item &&
+      typeof (item as DCAObjectFields).active === "boolean" &&
+      "input_balance" in item &&
+      typeof (item as DCAObjectFields).input_balance === "string" &&
+      "delegatee" in item &&
+      typeof (item as DCAObjectFields).delegatee === "string" &&
+      "every" in item &&
+      typeof (item as DCAObjectFields).every === "string" &&
+      "gas_budget" in item &&
+      typeof (item as DCAObjectFields).gas_budget === "string" &&
+      "id" in item &&
+      typeof (item as DCAObjectFields).id === "object" &&
+      "id" in (item as DCAObjectFields).id &&
+      typeof (item as DCAObjectFields).id.id === "string" &&
+      "last_time_ms" in item &&
+      typeof (item as DCAObjectFields).last_time_ms === "string" &&
+      "owner" in item &&
+      typeof (item as DCAObjectFields).owner === "string" &&
+      "remaining_orders" in item &&
+      typeof (item as DCAObjectFields).remaining_orders === "string" &&
+      "split_allocation" in item &&
+      typeof (item as DCAObjectFields).split_allocation === "string" &&
+      "start_time_ms" in item &&
+      typeof (item as DCAObjectFields).start_time_ms === "string" &&
+      "time_scale" in item &&
+      typeof (item as DCAObjectFields).time_scale === "number" &&
+      "trade_params" in item &&
+      typeof (item as DCAObjectFields).trade_params === "object" &&
+      "type" in (item as DCAObjectFields).trade_params &&
+      typeof (item as DCAObjectFields).trade_params.type === "string" &&
+      "fields" in (item as DCAObjectFields).trade_params &&
+      typeof (item as DCAObjectFields).trade_params.fields === "object" &&
+      "max_price" in (item as DCAObjectFields).trade_params.fields &&
+      (typeof (item as DCAObjectFields).trade_params.fields.max_price === "string" ||
+        (item as DCAObjectFields).trade_params.fields.max_price === null) &&
+      "min_price" in (item as DCAObjectFields).trade_params.fields &&
+      (typeof (item as DCAObjectFields).trade_params.fields.min_price === "string" ||
+        (item as DCAObjectFields).trade_params.fields.min_price === null) &&
+      "base_coin_type" in item &&
+      typeof (item as DCAObjectFields).base_coin_type === "string" &&
+      "quote_coin_type" in item &&
+      typeof (item as DCAObjectFields).quote_coin_type === "string",
   );
 }
