@@ -50,7 +50,14 @@ export class RedisStorageSingleton implements IStorage {
    */
   public async setCache(params: SetCacheParams): Promise<void> {
     const { provider, property, value } = params;
-    const key = `${provider}.${property}.${RedisStorageSingleton.version}`;
+    let key;
+
+    if (provider === undefined) {
+      key = `${property}.${RedisStorageSingleton.version}`;
+    } else {
+      key = `${provider}.${property}.${RedisStorageSingleton.version}`;
+    }
+
     const stringifiedValue: string = JSON.stringify(value);
 
     const setResult = await this.client.set(key, stringifiedValue);
@@ -69,7 +76,14 @@ export class RedisStorageSingleton implements IStorage {
    */
   public async getCache(params: GetCacheParams): Promise<StorageValue> {
     const { provider, property } = params;
-    const key = `${provider}.${property}.${RedisStorageSingleton.version}`;
+    let key;
+
+    if (provider === undefined) {
+      key = `${property}.${RedisStorageSingleton.version}`;
+    } else {
+      key = `${provider}.${property}.${RedisStorageSingleton.version}`;
+    }
+
     const value = await this.client.get(key);
 
     if (value === null) {
