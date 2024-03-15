@@ -2,6 +2,7 @@
 import { EventId, PaginatedEvents, SuiClient, SuiEvent } from "@mysten/sui.js/client";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js/utils";
+import BigNumber from "bignumber.js";
 import { MAX_BATCH_EVENTS_PER_QUERY_EVENTS_REQUEST } from "../../providers/common";
 import { getAllObjects } from "../../providers/utils/getAllObjects";
 import { GetTransactionType } from "../../transactions/types";
@@ -12,6 +13,7 @@ import {
   CreateDCAInitTransactionArgs,
   DCACreateEventParsedJson,
   DCAObject,
+  DCAObjectFields,
   GetDCAAddGasBudgetTransactionArgs,
   GetDCADepositBaseTransactionArgs,
   GetDCAIncreaseOrdersRemainingTransactionArgs,
@@ -26,7 +28,6 @@ import {
   SuiEventDCACreate,
 } from "./types";
 import { filterValidDCAObjects, getBaseQuoteCoinTypesFromDCAType, hasMinMaxPriceParams } from "./utils";
-import BigNumber from "bignumber.js";
 
 /**
  * @class DCAManagerSingleton
@@ -137,7 +138,7 @@ export class DCAManagerSingleton {
     return dcaList;
   }
 
-  public async getActiveDCAsFieldsByPackage() {
+  public async getActiveDCAsFieldsByPackage(): Promise<DCAObjectFields[]> {
     const dcasByPackage = await this.getDCAsByPackage();
 
     return dcasByPackage.filter((dca) => dca.fields.active === true).map((dca) => dca.fields);
