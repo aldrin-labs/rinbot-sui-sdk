@@ -178,11 +178,13 @@ export type DCAContentFields = {
   };
 };
 
+export type DCAObjectFields = DCAContentFields & {
+  base_coin_type: string;
+  quote_coin_type: string;
+};
+
 export interface DCAObject extends DCAContent {
-  fields: DCAContentFields & {
-    base_coin_type: string;
-    quote_coin_type: string;
-  };
+  fields: DCAObjectFields;
 }
 
 export interface DCAResponseData extends SuiObjectData {
