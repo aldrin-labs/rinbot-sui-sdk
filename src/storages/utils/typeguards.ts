@@ -19,7 +19,8 @@ export function isStorageValue(data: unknown): data is StorageValue {
       isShortCoinMetadataArray(data.value) ||
       isShortPoolDataArray(data.value) ||
       isCetusPathForStorageArray(data.value) ||
-      isDCAObjectFieldsArray(data.value))
+      isDCAObjectFieldsArray(data.value) ||
+      isDcaIsTradingField(data.value))
   );
 }
 
@@ -156,4 +157,8 @@ export function isDCAObjectFieldsArray(data: unknown): data is DCAObjectFields[]
       "quote_coin_type" in item &&
       typeof (item as DCAObjectFields).quote_coin_type === "string",
   );
+}
+
+export function isDcaIsTradingField(data: unknown): data is boolean {
+  return typeof data === "boolean";
 }
