@@ -41,6 +41,8 @@ export * from "./storages/RedisStorage";
 export * from "./storages/InMemoryStorage";
 export * from "./storages/types";
 export * from "./storages/utils/typeguards";
+export * from "./storages/utils/getIsDcaTradingCache";
+export * from "./storages/utils/storeIsDcaTradingCache";
 
 // Misc
 export { SUI_DECIMALS, isValidSuiAddress } from "@mysten/sui.js/utils";
