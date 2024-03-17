@@ -4,6 +4,9 @@ import { MoveStruct, SuiObjectResponse, SuiParsedData } from "@mysten/sui.js/cli
 import BigNumber from "bignumber.js";
 import { TOKEN_ADDRESS_BASE_REGEX } from "../../providers/common";
 import { DCAContent, DCAContentFields, DCAResponse, DCATimescaleToMillisecondsMap } from "./types";
+import { Argument } from "./txBlock";
+
+export const DCA_CONTRACT = "0x9a6721b2b4f60c8db8d6e57fa226135f45cdbc8e5729c2b314205bcddcc9c8a2";
 
 export function isValidDCAFields(fields: MoveStruct): fields is DCAContentFields {
   const expectedKeys: (keyof DCAContentFields)[] = [
@@ -114,3 +117,10 @@ export function getMillisecondsByDcaEveryParams(every: string, timeScale: number
 
   return new BigNumber(every).multipliedBy(milliseconds).toNumber();
 }
+
+export const fromArgument = (arg: Argument, idx: number) => ({
+  kind: arg.kind,
+  value: arg.value,
+  type: arg.type,
+  index: idx,
+});

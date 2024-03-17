@@ -43,3 +43,7 @@ To run the SUI Trading Bot SDK, ensure the following:
 ## Usage
 
 Check the `examples` directory in the root of the SUI Trading Bot SDK for usage examples of each provider and manager.
+
+# Running example with printing logs (including errors) to the log file
+
+`yarn ts-node examples/cetus/cetus-dca.ts > cetus-dca.txt 2>&1`

@@ -19,11 +19,13 @@ export const getFiltredProviders = ({
   coinsByProviderMap,
   tokenFrom,
   tokenTo,
+  supportedProviders,
 }: {
   poolProviders: Providers;
   coinsByProviderMap: Map<string, Map<string, CommonCoinData>>;
   tokenFrom: string;
   tokenTo: string;
+  supportedProviders?: Providers;
 }) => {
   const tokenFromIsSui: boolean = tokenFrom === SHORT_SUI_COIN_TYPE || tokenFrom === LONG_SUI_COIN_TYPE;
   const tokenToIsSui: boolean = tokenTo === SHORT_SUI_COIN_TYPE || tokenTo === LONG_SUI_COIN_TYPE;
@@ -34,6 +36,17 @@ export const getFiltredProviders = ({
     if (!providerCoins) {
       console.warn(`[getFiltredProviders] No coins found for such provider ${poolProvider.providerName}`);
       return false;
+    }
+
+    // Check that provider is in supportedProviders
+    if (supportedProviders?.length) {
+      const isPoolProviderIsInSupportedProviders = supportedProviders.find((supportedProvider) =>
+        supportedProvider.providerName.includes(poolProvider.providerName),
+      );
+
+      if (!isPoolProviderIsInSupportedProviders) {
+        return false;
+      }
     }
 
     // Check that provider has one of the variants of SUI token

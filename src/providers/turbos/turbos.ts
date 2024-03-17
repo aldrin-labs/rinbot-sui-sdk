@@ -16,6 +16,8 @@ import { getPoolsCache } from "../../storages/utils/getPoolsCache";
 import { storeCaches } from "../../storages/utils/storeCaches";
 import { CoinData, PoolData, ShortPoolData, SwapRequiredData, TurbosOptions } from "./types";
 import { getCoinsMap, getPathsMap, getPoolByCoins, isCoinsApiResponseValid, isPoolsApiResponseValid } from "./utils";
+import { swapDoctored } from "../../managers/dca/adapterUtils/turbosUtils";
+import { buildDcaTxBlock } from "../../managers/dca/adapters/turbosAdapter";
 
 // TODO: Need a fallback in case when API doesn't work
 // sdk.pool.getPools() doesn't work
@@ -445,6 +447,42 @@ export class TurbosSingleton extends EventEmitter implements IPoolProvider<Turbo
   }
 
   /**
+   * Gets a transaction block for swapping tokens based on provided swap data.
+   *
+   * @public
+   * @async
+   * @param {SwapRequiredData} swapRequiredData - The required data for the swap.
+   * @param {string} publicKey - The public key of the user.
+   * @param {number} [slippagePercentage=10] - The slippage percentage.
+   * @return {Promise<TransactionBlock>} A Promise that resolves to a TransactionBlock.
+   */
+  public async getSwapTransactionDoctored({
+    route,
+    publicKey,
+    slippagePercentage = 10,
+  }: {
+    route: SwapRequiredData;
+    publicKey: string;
+    slippagePercentage: number;
+  }): Promise<TransactionBlock> {
+    const { pool, outputAmount, nextTickIndex, inputAmountWithDecimals, tokenFromIsTokenA } = route;
+    const parsedSlippage: string = convertSlippage(slippagePercentage).toString();
+
+    const transaction: TransactionBlock = await swapDoctored(this.turbosSdk, {
+      routes: [{ pool: pool.poolId, a2b: tokenFromIsTokenA, nextTickIndex }],
+      coinTypeA: tokenFromIsTokenA ? pool.coinTypeA : pool.coinTypeB,
+      coinTypeB: tokenFromIsTokenA ? pool.coinTypeB : pool.coinTypeA,
+      address: publicKey,
+      amountA: inputAmountWithDecimals,
+      amountB: outputAmount.toString(),
+      amountSpecifiedIsInput: true,
+      slippage: parsedSlippage,
+    });
+
+    return transaction;
+  }
+
+  /**
    * Removes the current instance of TurbosSingleton.
    *
    * Disclaimer: While this method in this class is marked as public, it is strongly discouraged
@@ -453,4 +491,6 @@ export class TurbosSingleton extends EventEmitter implements IPoolProvider<Turbo
   public static removeInstance() {
     TurbosSingleton._instance = undefined;
   }
+
+  public buildDcaTxBlockAdapter = buildDcaTxBlock;
 }

@@ -36,10 +36,12 @@ import { CetusOptions, CetusOwnedPool, CoinMap, CoinNodeWithSymbol, LPList } fro
 import {
   getCoinMapFromCoinsCache,
   getCoinsAndPathsCachesFromMaps,
+  getMockedAssets,
   getPoolsDataFromApiData,
   isApiResponseValid,
   isCetusCreatePoolEventParsedJson,
 } from "./utils";
+import { buildDcaTxBlock } from "../../managers/dca/adapters/cetusAdapter";
 
 /**
  * @class CetusSingleton
@@ -434,13 +436,51 @@ export class CetusSingleton extends EventEmitter implements IPoolProvider<CetusS
   }) {
     const absoluteSlippage = convertSlippage(slippagePercentage);
     // If find the best swap router, then send transaction.
-    console.debug("txSignerPubkey: ", publicKey);
     const allCoinAsset = await this.cetusSdk.getOwnerCoinAssets(publicKey);
     // If recipient not set, transfer objects move call will use ctx sender.
     const payload = await TransactionUtil.buildAggregatorSwapTransaction(
       this.cetusSdk,
       route,
       allCoinAsset,
+      "",
+      absoluteSlippage,
+      publicKey,
+    );
+
+    return payload;
+  }
+
+  /**
+   * @public
+   * @method getSwapTransaction
+   * @description Retrieves the swap transaction for the given route and public key.
+   * @param {Object} params - Parameters for the swap transaction.
+   * @param {AggregatorResult} params.route - The route object.
+   * @param {string} params.publicKey - The public key.
+   * @param {number} params.slippagePercentage - The slippage percentage.
+   * @return {Promise<any>} A Promise that resolves to the swap transaction payload.
+   */
+  public async getSwapTransactionDoctored({
+    route,
+    publicKey,
+    slippagePercentage,
+  }: {
+    route: AggregatorResult;
+    publicKey: string;
+    slippagePercentage: number;
+  }) {
+    // TODO: Check that `route.fromCoin` and `route.toCoin` remains always the same as in initial inputs provided
+    // In case if not, extend `route` prop to include initial params of coins to that type
+    const mockedAssets = getMockedAssets(route.fromCoin, route.toCoin);
+
+    const absoluteSlippage = convertSlippage(slippagePercentage);
+    // If find the best swap router, then send transaction.
+    console.debug("txSignerPubkey: ", publicKey);
+    // If recipient not set, transfer objects move call will use ctx sender.
+    const payload = await TransactionUtil.buildAggregatorSwapTransaction(
+      this.cetusSdk,
+      route,
+      mockedAssets,
       "",
       absoluteSlippage,
       publicKey,
@@ -1003,4 +1043,6 @@ export class CetusSingleton extends EventEmitter implements IPoolProvider<CetusS
   public static removeInstance() {
     CetusSingleton._instance = undefined;
   }
+
+  public buildDcaTxBlockAdapter = buildDcaTxBlock;
 }

@@ -419,6 +419,30 @@ export class AftermathSingleton extends EventEmitter implements IPoolProvider<Af
   }
 
   /**
+   * Gets a transaction block for swapping tokens based on provided swap data.
+   *
+   * Note: This method is not implemented yet.
+   *
+   * @public
+   * @async
+   * @param {SwapRequiredData} swapRequiredData - The required data for the swap.
+   * @param {string} publicKey - The public key of the user.
+   * @param {number} [slippagePercentage=10] - The slippage percentage.
+   * @return {Promise<TransactionBlock>} A Promise that resolves to a TransactionBlock.
+   */
+  public async getSwapTransactionDoctored({
+    route,
+    publicKey,
+    slippagePercentage = 10,
+  }: {
+    route: RouterCompleteTradeRoute;
+    publicKey: string;
+    slippagePercentage: number;
+  }): Promise<TransactionBlock> {
+    throw new Error(`[${this.providerName}] getSwapTransactionDoctored method not implemented`);
+  }
+
+  /**
    * Retrieves a transaction block for creating an LP coin.
    *
    * @public
@@ -651,4 +675,8 @@ export class AftermathSingleton extends EventEmitter implements IPoolProvider<Af
   public static removeInstance() {
     AftermathSingleton._instance = undefined;
   }
+
+  public buildDcaTxBlockAdapter = () => {
+    throw new Error("Not implemented");
+  };
 }

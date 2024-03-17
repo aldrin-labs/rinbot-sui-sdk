@@ -1,4 +1,4 @@
-import { CoinNode, PathLink } from "@cetusprotocol/cetus-sui-clmm-sdk";
+import { CoinAsset, CoinNode, PathLink } from "@cetusprotocol/cetus-sui-clmm-sdk";
 import { CoinsCache, PathsCache } from "../types";
 import {
   APIResponse,
@@ -154,3 +154,16 @@ export function getCoinMapFromCoinsCache(coinsCache: CoinsCache): CoinMap {
 
   return coins;
 }
+
+export const getMockedAssets = (tokenFrom: string, tokenTo: string): CoinAsset[] => [
+  {
+    coinAddress: tokenFrom,
+    coinObjectId: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    balance: BigInt("9999999999999999999"),
+  },
+  {
+    coinAddress: tokenTo,
+    coinObjectId: "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    balance: BigInt("9999999999999999999"),
+  },
+];

@@ -20,6 +20,8 @@ import {
 } from "./types";
 import { getCoinsMap, getPathsMap, isCoinListValid, isPairListValid } from "./utils";
 import { getCoinsMetadataCache } from "../../storages/utils/getCoinsMetadataCache";
+import { swapExactInputDoctored } from "../../managers/dca/adapterUtils/flowxUtils";
+import { buildDcaTxBlock } from "../../managers/dca/adapters/flowxAdapter";
 
 /**
  * @class FlowxSingleton
@@ -353,6 +355,43 @@ export class FlowxSingleton extends EventEmitter implements IPoolProvider<FlowxS
   }
 
   /**
+   * @public
+   * @method getSwapTransaction
+   * @description Gets the swap transaction data.
+   * @param {Object} options - Options for getting swap transaction data.
+   * @param {ExtendedSwapCalculatedOutputDataType} options.route - The route for the swap.
+   * @param {string} options.publicKey - The public key for the swap.
+   * @param {number} options.slippagePercentage - The slippage percentage.
+   * @return {Promise<TransactionBlock>} Swap transaction data.
+   */
+  public async getSwapTransactionDoctored({
+    route,
+    publicKey,
+    slippagePercentage,
+  }: {
+    route: ExtendedSwapCalculatedOutputDataType;
+    publicKey: string;
+    slippagePercentage: number;
+  }) {
+    const absoluteSlippage = convertSlippage(slippagePercentage);
+
+    const legacyTxBlock = await swapExactInputDoctored(
+      false, // it should be false for now
+      route.amountIn, // amount want to swap
+      route.amountOut, // amount want to receive
+      route.trades, // trades from calculate amount
+      route.tokenFrom, // coin In data
+      route.tokenTo, // coin Out data
+      publicKey,
+      absoluteSlippage, // slippage (0.05%)
+    );
+
+    const txBlock = new TransactionBlock(TransactionBlock.from(legacyTxBlock.serialize()));
+
+    return txBlock;
+  }
+
+  /**
    * Removes the current instance of FlowxSingleton.
    *
    * Disclaimer: While this method in this class is marked as public, it is strongly discouraged
@@ -361,4 +400,6 @@ export class FlowxSingleton extends EventEmitter implements IPoolProvider<FlowxS
   public static removeInstance() {
     FlowxSingleton._instance = undefined;
   }
+
+  public buildDcaTxBlockAdapter = buildDcaTxBlock;
 }
