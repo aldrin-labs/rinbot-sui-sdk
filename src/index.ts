@@ -47,6 +47,7 @@ export * from "./storages/utils/storeIsDcaTradingCache";
 // Misc
 export { SUI_DECIMALS, isValidSuiAddress } from "@mysten/sui.js/utils";
 export { TransactionBlock, isTransactionBlock } from "@mysten/sui.js/transactions";
+export { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 
 // Launchpad
 export * from "./launchpad/surfdog/surfdog";
