@@ -31,6 +31,7 @@ export enum StorageProperty {
   CoinsMetadata = "coinsMetadata",
   CetusPaths = "cetusPaths",
   DCAs = "dcas",
+  IsDCATrading = "isDcaTrading",
 }
 
 export type StorageValue =
@@ -40,6 +41,7 @@ export type StorageValue =
   | { value: ShortPoolData[]; timestamp: string }
   | { value: CetusPathForStorage[]; timestamp: string }
   | { value: DCAObjectFields[]; timestamp: string }
+  | { value: boolean; timestamp: string }
   | null;
 
 export type RedisStorageClient = ReturnType<typeof createClient>;
