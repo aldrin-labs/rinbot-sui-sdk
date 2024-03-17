@@ -7,8 +7,9 @@ import { SUI_DENOMINATOR, SWAP_GAS_BUDGET } from "../providers/common";
 import { isSuiCoinType } from "../providers/utils/isSuiCoinType";
 import { GetTransactionType } from "../transactions/types";
 import { CoinManagerSingleton } from "./CoinManager";
-import { BestRouteData, IRouteManager, Providers, ProvidersToRouteDataMap } from "./types";
+import { BestRouteData, IRouteManager, Provider, Providers, ProvidersToRouteDataMap } from "./types";
 import { getFiltredProviders, getRouterMaps, tokenFromIsTokenTo } from "./utils";
+import { TryCatchWrapperResult } from "../providers/types";
 
 /**
  * @class RouteManager
@@ -359,6 +360,48 @@ export class RouteManager implements IRouteManager {
     // doesn't set/calculate gas budger for their transactions properly.
     // We can do the simulation on our side, but it will slowdown the swap
     // transaction.setGasBudget(SWAP_GAS_BUDGET);
+
+    return doctoredForDCATransactionBlock;
+  }
+
+  /**
+   * @public
+   * @method getBestRouteTransactionForDCAByRouteData
+   * @description Gets the best route transaction for token swapping for DCA
+   * based on the provided `route` and `maxOutputProvider`.
+   */
+  public async getBestRouteTransactionForDCAByRouteData({
+    tokenFrom,
+    tokenTo,
+    slippagePercentage,
+    signerAddress,
+    dcaObjectId,
+    dcaTradeGasCost,
+    route,
+    maxOutputProvider,
+  }: {
+    tokenFrom: string;
+    tokenTo: string;
+    slippagePercentage: number;
+    signerAddress: string;
+    dcaObjectId: string;
+    dcaTradeGasCost: number;
+    route: TryCatchWrapperResult;
+    maxOutputProvider: Provider;
+  }): Promise<TransactionBlock> {
+    const transaction = await maxOutputProvider.getSwapTransactionDoctored({
+      route,
+      publicKey: signerAddress,
+      slippagePercentage,
+    });
+
+    const doctoredForDCATransactionBlock = maxOutputProvider.buildDcaTxBlockAdapter(
+      transaction,
+      tokenFrom,
+      tokenTo,
+      dcaObjectId,
+      dcaTradeGasCost,
+    );
 
     return doctoredForDCATransactionBlock;
   }

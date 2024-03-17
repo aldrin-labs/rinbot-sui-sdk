@@ -162,6 +162,7 @@ export class CoinManagerSingleton implements ICoinManager {
     const coinData = this.allCoinsCache.get(coinType);
 
     if (coinData === undefined) {
+      // TODO: Add storing into cache the `coinData` afterwards, in case we are fetched it
       console.warn(`[getCoinByType2] No decimals for coin ${coinType}, so fetching...`);
       const fetchedCoinMetadata: CoinMetadata | null = await this.fetchCoinMetadata(coinType);
 

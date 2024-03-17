@@ -6,8 +6,8 @@ import { USDC_COIN_TYPE } from "../coin-types";
 import { cacheOptions, initAndGetRedisStorage, provider, signAndExecuteTransaction, user } from "../common";
 import { delegateeKeypair, delegateeUser } from "../dca/common";
 
-// TODO: These are dummy values
 const GAS_PROVISION = DCAManagerSingleton.DCA_MINIMUM_GAS_FUNDS;
+const BASE_FEES_BPS = 5;
 const DCA_ID = "0x4d0316c3a32221e175ab2bb9abe360ed1d4498806dc50984ab67ce0ba90f2842";
 
 // The transaction flow is the following when selling non-SUI OR SUI token for X:
@@ -27,6 +27,8 @@ export const flowx = async ({
   slippagePercentage: number;
   signerAddress: string;
 }) => {
+  const netAmount = parseFloat(amount) - fee_amount(parseFloat(amount));
+
   const storage = await initAndGetRedisStorage();
 
   const flowx: FlowxSingleton = await FlowxSingleton.getInstance({
@@ -37,7 +39,7 @@ export const flowx = async ({
   const calculatedData = await flowx.getRouteData({
     coinTypeFrom: tokenFrom,
     coinTypeTo: tokenTo,
-    inputAmount: amount,
+    inputAmount: netAmount.toString(),
     publicKey: signerAddress,
     slippagePercentage,
   });
@@ -60,12 +62,12 @@ export const flowx = async ({
   console.debug("\n\n\n\n\n");
   console.debug(`Final TxBlock: ${JSON.stringify(txBlockDca.blockData)}`);
 
-  // const res = await provider.devInspectTransactionBlock({
-  //   transactionBlock: txBlockDca,
-  //   sender: delegateeUser,
-  // });
+  const res = await provider.devInspectTransactionBlock({
+    transactionBlock: txBlockDca,
+    sender: delegateeUser,
+  });
 
-  const res = await signAndExecuteTransaction(txBlockDca, delegateeKeypair);
+  // const res = await signAndExecuteTransaction(txBlockDca, delegateeKeypair);
   console.debug("res: ", res);
 };
 
@@ -86,3 +88,10 @@ flowx({
   slippagePercentage: 10,
   signerAddress: user,
 });
+
+// eslint-disable-next-line
+function fee_amount(amount: number): number {
+  const scaledFee = Math.floor((amount * 1_000_000 * BASE_FEES_BPS) / 10_000);
+
+  return scaledFee / 1_000_000;
+}
