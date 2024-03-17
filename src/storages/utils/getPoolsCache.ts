@@ -1,6 +1,6 @@
+import { ShortPoolData } from "../../providers/turbos/types";
 import { Storage, StorageProperty, StorageValue } from "../types";
 import { isShortPoolDataArray } from "./typeguards";
-import { ShortPoolData } from "../../providers/turbos/types";
 
 /**
  * Returns pools cache from storage. If cache is not up to date, empty array is returned.
@@ -33,10 +33,10 @@ export const getPoolsCache = async ({
   } else if (pools === null) {
     console.warn(`[getPoolsCache] ${provider} Received empty pools from strorage, pools === null `);
   } else {
-    const stringifiedPool: string = JSON.stringify(pools.value[0]);
+    const stringifiedPools: string = JSON.stringify(pools.value);
     throw new Error(
       `[${provider}] getPoolsCache: pools from storage are not ` +
-        `(ShortPoolData[] or null). Example of pool: ${stringifiedPool}`,
+        `(ShortPoolData[] or null). Pools from storage: ${stringifiedPools}`,
     );
   }
 

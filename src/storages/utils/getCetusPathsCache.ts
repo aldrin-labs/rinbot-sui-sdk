@@ -41,10 +41,10 @@ export const getCetusPathsCache = async ({
   } else if (paths === null) {
     console.warn(`[getCetusPathsCache] ${provider} Received empty paths from strorage, paths === null `);
   } else {
-    const stringifiedPath: string = JSON.stringify(paths.value[0]);
+    const stringifiedPaths: string = JSON.stringify(paths.value);
     throw new Error(
       `[${provider}] prefillCaches: paths from storage are not (PathLink[] or null). ` +
-        `Example of path: ${stringifiedPath}`,
+        `Paths from storage: ${stringifiedPaths}`,
     );
   }
 
