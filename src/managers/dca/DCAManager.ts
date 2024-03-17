@@ -38,8 +38,9 @@ import { filterValidDCAObjects, getBaseQuoteCoinTypesFromDCAType, hasMinMaxPrice
  */
 export class DCAManagerSingleton {
   // TODO: Change DCA_PACKAGE_ADDRESS & maybe move all that params to args for singleton
-  public static DCA_PACKAGE_ADDRESS = "0x89b1372fa44ac2312a3876d83612d1dc9d298af332a42a153913558332a564d0";
-  public static DCA_EVENT_TYPE = `${DCAManagerSingleton.DCA_PACKAGE_ADDRESS}::dca::DCACreatedEvent`;
+  public static DCA_PACKAGE_ADDRESS = "0x9a6721b2b4f60c8db8d6e57fa226135f45cdbc8e5729c2b314205bcddcc9c8a2";
+  public static DCA_PACKAGE_ADDRESS_READ = "0x89b1372fa44ac2312a3876d83612d1dc9d298af332a42a153913558332a564d0";
+  public static DCA_EVENT_TYPE = `${DCAManagerSingleton.DCA_PACKAGE_ADDRESS_READ}::dca::DCACreatedEvent`;
   public static DCA_GAS_BUGET = 50_000_000;
   // TODO: Rename DCA_MINIMUM_GAS_FUNDS to DCA_MINIMUM_GAS_FUNDS_PER_TRADE
   public static DCA_MINIMUM_GAS_FUNDS = 25_000_000;
