@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 
-import { isValidDCAFields } from "../..";
+import { isValidDCAFieldsArray } from "../..";
 import { CommonCoinData } from "../../managers/types";
 import { CetusPathForStorage } from "../../providers/cetus/types";
 import { ShortCoinMetadata } from "../../providers/flowx/types";
@@ -19,7 +19,7 @@ export function isStorageValue(data: unknown): data is StorageValue {
       isShortCoinMetadataArray(data.value) ||
       isShortPoolDataArray(data.value) ||
       isCetusPathForStorageArray(data.value) ||
-      isValidDCAFields(data.value) ||
+      isValidDCAFieldsArray(data.value) ||
       isDcaIsTradingField(data.value))
   );
 }
