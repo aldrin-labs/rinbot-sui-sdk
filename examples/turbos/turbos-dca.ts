@@ -1,5 +1,5 @@
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { DCAManagerSingleton, LONG_SUI_COIN_TYPE, feeAmount } from "../../src";
+import { CoinManagerSingleton, DCAManagerSingleton, LONG_SUI_COIN_TYPE, feeAmount } from "../../src";
 import { buildDcaTxBlock } from "../../src/managers/dca/adapters/turbosAdapter";
 import { TurbosSingleton } from "../../src/providers/turbos/turbos";
 import { USDC_COIN_TYPE } from "../coin-types";
@@ -12,9 +12,10 @@ import {
   user,
 } from "../common";
 import { delegateeKeypair, delegateeUser } from "../dca/common";
+import { FeeManager } from "../../src/managers/FeeManager";
 
 // TODO: These are dummy values
-const GAS_PROVISION = DCAManagerSingleton.DCA_MINIMUM_GAS_FUNDS;
+const GAS_PROVISION = DCAManagerSingleton.DCA_MINIMUM_GAS_FUNDS_PER_TRADE;
 const DCA_ID = "0x4d0316c3a32221e175ab2bb9abe360ed1d4498806dc50984ab67ce0ba90f2842";
 
 // The transaction flow is the following when selling non-SUI token for X:
@@ -39,12 +40,25 @@ const DCA_ID = "0x4d0316c3a32221e175ab2bb9abe360ed1d4498806dc50984ab67ce0ba90f28
   const coinTypeFrom: string = USDC_COIN_TYPE;
   const coinTypeTo: string = LONG_SUI_COIN_TYPE;
   const inputAmount = "0.333333";
-  const netAmount = parseFloat(inputAmount) - feeAmount(parseFloat(inputAmount));
+
+  const coinManager = CoinManagerSingleton.getInstance([turbos], suiProviderUrl);
+  const tokenFromData = await coinManager.getCoinByType2(coinTypeFrom);
+  const tokenFromDecimals = tokenFromData?.decimals;
+
+  if (!tokenFromDecimals) {
+    throw new Error(`No decimals found for ${coinTypeFrom}`);
+  }
+
+  const netAmount = FeeManager.calculateNetAmount({
+    feePercentage: DCAManagerSingleton.DCA_TRADE_FEE_PERCENTAGE,
+    amount: inputAmount,
+    tokenDecimals: tokenFromDecimals,
+  });
 
   const routeData = await turbos.getRouteData({
     coinTypeFrom,
     coinTypeTo,
-    inputAmount: netAmount.toString(),
+    inputAmount: netAmount,
     publicKey: user,
     slippagePercentage: 10,
   });

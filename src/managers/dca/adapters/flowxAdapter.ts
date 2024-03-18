@@ -1,17 +1,19 @@
+/* eslint-disable max-len */
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { TxBlock, Transaction, Arguments, Argument, Input } from "../txBlock";
-import { DCA_CONTRACT, fromArgument } from "../utils";
+import { fromArgument } from "../utils";
+import { DCA_CONFIG } from "../config";
 
 const DCA_ROUTER = "flow_x";
 let InputIndex = 0;
 
 const swapPatterns: Record<string, `${string}::${string}::${string}`> = {
-  ".*::router::swap_exact_output$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_exact_output"}`,
-  ".*::router::swap_exact_output_doublehop$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_exact_output_doublehop"}`,
-  ".*::router::swap_exact_output_triplehop$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_exact_output_triplehop"}`,
-  ".*::router::swap_exact_input$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_exact_input"}`,
-  ".*::router::swap_exact_input_doublehop$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_exact_input_doublehop"}`,
-  ".*::router::swap_exact_input_triplehop$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_exact_input_triplehop"}`,
+  ".*::router::swap_exact_output$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_exact_output"}`,
+  ".*::router::swap_exact_output_doublehop$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_exact_output_doublehop"}`,
+  ".*::router::swap_exact_output_triplehop$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_exact_output_triplehop"}`,
+  ".*::router::swap_exact_input$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_exact_input"}`,
+  ".*::router::swap_exact_input_doublehop$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_exact_input_doublehop"}`,
+  ".*::router::swap_exact_input_triplehop$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_exact_input_triplehop"}`,
 };
 
 type SwapParams = {
@@ -71,7 +73,7 @@ export function buildDcaTxBlock(
 
       if (swapMatch) {
         const parts = transaction.target.split("::");
-        const newTarget: `${string}::${string}::${string}` = `${DCA_CONTRACT}::${DCA_ROUTER}::${parts[2]}`;
+        const newTarget: `${string}::${string}::${string}` = `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${parts[2]}`;
         isExactIn = parts[2].includes("exact_input");
 
         const swapParams: SwapParams = isExactIn

@@ -1,20 +1,21 @@
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { TxBlock, Transaction, Arguments, Argument, Input } from "../txBlock";
-import { DCA_CONTRACT, fromArgument } from "../utils";
+import { fromArgument } from "../utils";
+import { DCA_CONFIG } from "../config";
 
 const DCA_ROUTER = "cetus2";
 let InputIndex = 0;
 
 const swapPatterns: Record<string, `${string}::${string}::${string}`> = {
-  ".*::router::swap$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap"}`,
-  ".*::router::swap_ab_bc$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_ab_bc"}`,
-  ".*::router::swap_ab_cb$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_ab_cb"}`,
-  ".*::router::swap_ba_bc$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_ba_bc"}`,
-  ".*::router::swap_ba_cb$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_ba_cb"}`,
+  ".*::router::swap$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap"}`,
+  ".*::router::swap_ab_bc$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_ab_bc"}`,
+  ".*::router::swap_ab_cb$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_ab_cb"}`,
+  ".*::router::swap_ba_bc$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_ba_bc"}`,
+  ".*::router::swap_ba_cb$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_ba_cb"}`,
 };
 
 const checkPatterns: Record<string, `${string}::${string}::${string}`> = {
-  ".*::router::check_coin_threshold$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"check_coin_threshold"}`,
+  ".*::router::check_coin_threshold$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"check_coin_threshold"}`,
 };
 
 type SwapParams = {
@@ -89,8 +90,8 @@ export function buildDcaTxBlock(
 
       if (swapMatch) {
         const parts = transaction.target.split("::");
-        let newTarget: `${string}::${string}::${string}` = `${DCA_CONTRACT}::${DCA_ROUTER}::${parts[2]}`;
-        isSimpleSwap = newTarget === `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap"}`;
+        let newTarget: `${string}::${string}::${string}` = `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${parts[2]}`;
+        isSimpleSwap = newTarget === `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap"}`;
 
         // if pattern is swap --> route: if a2b == true --> swap_ab, else --> swap_ba
         if (isSimpleSwap) {
@@ -98,10 +99,10 @@ export function buildDcaTxBlock(
           const argument6 = transaction.arguments[5];
           if (argument6 && argument6.kind === "Input" && argument6.value === true) {
             // Modify the function name to swap_ab
-            newTarget = `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_ab"}`;
+            newTarget = `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_ab"}`;
           } else if (argument6 && argument6.kind === "Input" && argument6.value === false) {
             // Modify the function name to swap_ba
-            newTarget = `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_ba"}`;
+            newTarget = `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_ba"}`;
           } else {
             throw new Error("Incoherent function parameter");
           }

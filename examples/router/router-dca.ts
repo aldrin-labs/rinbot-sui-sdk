@@ -43,7 +43,7 @@ export const routerDCA = async ({
     signerAddress,
     supportedProviders,
     dcaObjectId: DCA_ID,
-    dcaTradeGasCost: DCAManagerSingleton.DCA_MINIMUM_GAS_FUNDS,
+    dcaTradeGasCost: DCAManagerSingleton.DCA_MINIMUM_GAS_FUNDS_PER_TRADE,
   });
   console.timeEnd("getBestRouteTransactionForDCA");
 

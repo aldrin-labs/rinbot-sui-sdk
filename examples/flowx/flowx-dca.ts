@@ -1,12 +1,20 @@
-import { DCAManagerSingleton, feeAmount } from "../../src";
+import { CoinManagerSingleton, DCAManagerSingleton } from "../../src";
+import { FeeManager } from "../../src/managers/FeeManager";
 import { buildDcaTxBlock } from "../../src/managers/dca/adapters/flowxAdapter";
 import { LONG_SUI_COIN_TYPE } from "../../src/providers/common";
 import { FlowxSingleton } from "../../src/providers/flowx/flowx";
 import { USDC_COIN_TYPE } from "../coin-types";
-import { cacheOptions, initAndGetRedisStorage, provider, signAndExecuteTransaction, user } from "../common";
+import {
+  cacheOptions,
+  initAndGetRedisStorage,
+  provider,
+  signAndExecuteTransaction,
+  suiProviderUrl,
+  user,
+} from "../common";
 import { delegateeKeypair, delegateeUser } from "../dca/common";
 
-const GAS_PROVISION = DCAManagerSingleton.DCA_MINIMUM_GAS_FUNDS;
+const GAS_PROVISION = DCAManagerSingleton.DCA_MINIMUM_GAS_FUNDS_PER_TRADE;
 const DCA_ID = "0x4d0316c3a32221e175ab2bb9abe360ed1d4498806dc50984ab67ce0ba90f2842";
 
 // The transaction flow is the following when selling non-SUI OR SUI token for X:
@@ -26,8 +34,6 @@ export const flowx = async ({
   slippagePercentage: number;
   signerAddress: string;
 }) => {
-  const netAmount = parseFloat(amount) - feeAmount(parseFloat(amount));
-
   const storage = await initAndGetRedisStorage();
 
   const flowx: FlowxSingleton = await FlowxSingleton.getInstance({
@@ -35,10 +41,24 @@ export const flowx = async ({
     lazyLoading: false,
   });
 
+  const coinManager = CoinManagerSingleton.getInstance([flowx], suiProviderUrl);
+  const tokenFromData = await coinManager.getCoinByType2(tokenFrom);
+  const tokenFromDecimals = tokenFromData?.decimals;
+
+  if (!tokenFromDecimals) {
+    throw new Error(`No decimals found for ${tokenFrom}`);
+  }
+
+  const netAmount = FeeManager.calculateNetAmount({
+    feePercentage: DCAManagerSingleton.DCA_TRADE_FEE_PERCENTAGE,
+    amount,
+    tokenDecimals: tokenFromDecimals,
+  });
+
   const calculatedData = await flowx.getRouteData({
     coinTypeFrom: tokenFrom,
     coinTypeTo: tokenTo,
-    inputAmount: netAmount.toString(),
+    inputAmount: netAmount,
     publicKey: signerAddress,
     slippagePercentage,
   });

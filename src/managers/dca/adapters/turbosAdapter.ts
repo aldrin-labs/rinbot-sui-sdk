@@ -1,17 +1,18 @@
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { TxBlock, Transaction, Arguments, Argument, Input } from "../txBlock";
-import { DCA_CONTRACT, fromArgument } from "../utils";
+import { fromArgument } from "../utils";
+import { DCA_CONFIG } from "../config";
 
 const DCA_ROUTER = "turbos";
 let InputIndex = 0;
 
 const swapPatterns: Record<string, `${string}::${string}::${string}`> = {
-  ".*::swap_router::swap_a_b$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_a_b"}`,
-  ".*::swap_router::swap_b_a$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_b_a"}`,
-  ".*::swap_router::swap_a_b_b_c$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_a_b_b_c"}`,
-  ".*::swap_router::swap_a_b_c_b$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_a_b_c_b"}`,
-  ".*::swap_router::swap_b_a_b_c$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_b_a_b_c"}`,
-  ".*::swap_router::swap_b_a_c_b$": `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_b_a_c_b"}`,
+  ".*::swap_router::swap_a_b$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_a_b"}`,
+  ".*::swap_router::swap_b_a$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_b_a"}`,
+  ".*::swap_router::swap_a_b_b_c$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_a_b_b_c"}`,
+  ".*::swap_router::swap_a_b_c_b$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_a_b_c_b"}`,
+  ".*::swap_router::swap_b_a_b_c$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_b_a_b_c"}`,
+  ".*::swap_router::swap_b_a_c_b$": `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${"swap_b_a_c_b"}`,
 };
 
 type SwapParams = {
@@ -85,7 +86,7 @@ export function buildDcaTxBlock(
 
       if (swapMatch) {
         const parts = transaction.target.split("::");
-        const newTarget: `${string}::${string}::${string}` = `${DCA_CONTRACT}::${DCA_ROUTER}::${parts[2]}`;
+        const newTarget: `${string}::${string}::${string}` = `${DCA_CONFIG.DCA_CONTRACT}::${DCA_ROUTER}::${parts[2]}`;
         simpleSwap = parts[2] === "swap_a_b" || parts[2] === "swap_b_a";
 
         const swapParams: SwapParams = simpleSwap
