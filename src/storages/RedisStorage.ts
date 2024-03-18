@@ -42,6 +42,7 @@ export class RedisStorageSingleton implements IStorage {
     return RedisStorageSingleton._instance;
   }
 
+  // TODO: Refactor this method to set specified types of value to avoid `provider` accidental property non-indication
   /**
    * Sets cache data in Redis.
    * @param {SetCacheParams} params - Parameters containing provider, property, and value.
@@ -52,9 +53,12 @@ export class RedisStorageSingleton implements IStorage {
     const { provider, property, value } = params;
     let key;
 
+    // When `provider` is not defined (e.g. for StorageProperty.DCAs), don't use it in `key`
+    // TODO: Make this clearer and more graceful
     if (provider === undefined) {
       key = `${property}.${RedisStorageSingleton.version}`;
     } else {
+      // When `provider` is defined (e.g. for StorageProperty.Coins), use it in `key`
       key = `${provider}.${property}.${RedisStorageSingleton.version}`;
     }
 
@@ -68,6 +72,7 @@ export class RedisStorageSingleton implements IStorage {
     }
   }
 
+  // TODO: Refactor this method to get specified types of value to avoid `provider` accidental property non-indication
   /**
    * Retrieves cache data from Redis.
    * @param {GetCacheParams} params - Parameters containing provider and property.
@@ -78,9 +83,12 @@ export class RedisStorageSingleton implements IStorage {
     const { provider, property } = params;
     let key;
 
+    // When `provider` is not defined (e.g. for StorageProperty.DCAs), don't use it in `key`
+    // TODO: Make this clearer and more graceful
     if (provider === undefined) {
       key = `${property}.${RedisStorageSingleton.version}`;
     } else {
+      // When `provider` is defined (e.g. for StorageProperty.Coins), use it in `key`
       key = `${provider}.${property}.${RedisStorageSingleton.version}`;
     }
 
