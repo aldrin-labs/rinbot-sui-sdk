@@ -1,5 +1,6 @@
 /* eslint-disable require-jsdoc */
 
+import { isValidDCAFieldsArray } from "../..";
 import { CommonCoinData } from "../../managers/types";
 import { CetusPathForStorage } from "../../providers/cetus/types";
 import { ShortCoinMetadata } from "../../providers/flowx/types";
@@ -16,7 +17,10 @@ export function isStorageValue(data: unknown): data is StorageValue {
     (isCommonCoinDataArray(data.value) ||
       isCommonPoolDataArray(data.value) ||
       isShortCoinMetadataArray(data.value) ||
-      isShortPoolDataArray(data.value))
+      isShortPoolDataArray(data.value) ||
+      isCetusPathForStorageArray(data.value) ||
+      isValidDCAFieldsArray(data.value) ||
+      isDcaIsTradingField(data.value))
   );
 }
 
@@ -101,4 +105,8 @@ export function isCetusPathForStorageArray(data: unknown): data is CetusPathForS
           Array.isArray(pair) && pair.length === 2 && typeof pair[0] === "number" && typeof pair[1] === "string",
       ),
   );
+}
+
+export function isDcaIsTradingField(data: unknown): data is boolean {
+  return typeof data === "boolean";
 }

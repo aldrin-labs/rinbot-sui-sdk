@@ -11,6 +11,22 @@ export enum DCATimescale {
   Months = 5,
 }
 
+export const SECOND_IN_MS = 1_000;
+export const MINUTE_IN_MS = 60 * SECOND_IN_MS;
+export const HOUR_IN_MS = 60 * MINUTE_IN_MS;
+export const DAY_IN_MS = 24 * HOUR_IN_MS;
+export const WEEK_IN_MS = 7 * DAY_IN_MS;
+export const MONTH_IN_MS = 30 * DAY_IN_MS;
+
+export const DCATimescaleToMillisecondsMap = new Map([
+  [DCATimescale.Seconds, SECOND_IN_MS],
+  [DCATimescale.Minutes, MINUTE_IN_MS],
+  [DCATimescale.Hours, HOUR_IN_MS],
+  [DCATimescale.Days, DAY_IN_MS],
+  [DCATimescale.Weeks, WEEK_IN_MS],
+  [DCATimescale.Months, MONTH_IN_MS],
+]);
+
 export type GetDCAInitTransactionArgs = {
   baseCoinType: string;
   quoteCoinType: string;
@@ -162,11 +178,13 @@ export type DCAContentFields = {
   };
 };
 
+export type DCAObjectFields = DCAContentFields & {
+  base_coin_type: string;
+  quote_coin_type: string;
+};
+
 export interface DCAObject extends DCAContent {
-  fields: DCAContentFields & {
-    base_coin_type: string;
-    quote_coin_type: string;
-  };
+  fields: DCAObjectFields;
 }
 
 export interface DCAResponseData extends SuiObjectData {

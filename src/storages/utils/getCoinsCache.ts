@@ -36,10 +36,10 @@ export const getCoinsCache = async ({
   } else if (coins === null) {
     console.warn(`[getCoinsCache] ${provider} Received empty coins from strorage, coins === null `);
   } else {
-    const stringifiedCoin: string = JSON.stringify(coins.value[0]);
+    const stringifiedCoins: string = JSON.stringify(coins.value);
     throw new Error(
       `[${provider}] prefillCaches: coins from storage are not (CommonCoinData[] or null). ` +
-        `Example of coin: ${stringifiedCoin}`,
+        `Coins from storage: ${stringifiedCoins}`,
     );
   }
 

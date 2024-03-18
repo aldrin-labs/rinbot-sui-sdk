@@ -1,5 +1,5 @@
 import { ExtractedCoinMetadataType } from "../../providers/flowx/types";
-import { StorageValue, StorageProperty, Storage } from "../types";
+import { Storage, StorageProperty, StorageValue } from "../types";
 import { isShortCoinMetadataArray } from "./typeguards";
 
 /**
@@ -36,10 +36,10 @@ export async function getCoinsMetadataCache({
       coinsMetadataCache === null `,
     );
   } else {
-    const stringifiedCoinMetadata: string = JSON.stringify(coinsMetadata.value[0]);
+    const stringifiedCoinMetadata: string = JSON.stringify(coinsMetadata.value);
     throw new Error(
       `[${provider}] getCoinsMetadataCache: coins metadata from storage is not ` +
-        `(ExtractedCoinMetadataType[] or null). Example of coin metadata: ${stringifiedCoinMetadata}`,
+        `(ExtractedCoinMetadataType[] or null). Coin metadata from storage: ${stringifiedCoinMetadata}`,
     );
   }
 
