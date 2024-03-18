@@ -48,3 +48,7 @@ export const clmmMainnet = {
 };
 
 export const CENTRALIZED_POOLS_INFO_ENDPOINT = "https://api-sui.cetus.zone/v2/sui/pools_info";
+
+export const MIN_FETCH_BEST_ROUTE_TIMEOUT_DURATION = 4_000;
+export const MAX_FETCH_BEST_ROUTE_TIMEOUT_DURATION = 5_500;
+export const FETCH_BEST_ROUTE_ATTEMPTS_COUNT = 1;
