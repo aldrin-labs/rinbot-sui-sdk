@@ -58,6 +58,12 @@ export function isValidDCAFields(fields: unknown): fields is DCAContentFields {
   );
 }
 
+export function isValidDCAFieldsArray(data: unknown): data is DCAContentFields[] {
+  if (!Array.isArray(data)) return false;
+
+  return data.every((item) => isValidDCAFields(item));
+}
+
 export function isDCAContent(data: SuiParsedData | null): data is DCAContent {
   return (
     !!data &&
