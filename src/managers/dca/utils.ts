@@ -6,7 +6,15 @@ import { TOKEN_ADDRESS_BASE_REGEX } from "../../providers/common";
 import { DCAContent, DCAContentFields, DCAResponse, DCATimescaleToMillisecondsMap } from "./types";
 import { Argument } from "./txBlock";
 
-export const DCA_CONTRACT = "0x9a6721b2b4f60c8db8d6e57fa226135f45cdbc8e5729c2b314205bcddcc9c8a2";
+export const DCA_CONTRACT = "0x3ed0a2079006bdc14688b0b99129dd5fcf9ebda3042db1a58b5347b8bf542c40";
+export const BASE_FEES_BPS = 5;
+
+// eslint-disable-next-line
+export function feeAmount(amount: number): number {
+  const scaledFee = Math.floor((amount * 1_000_000 * BASE_FEES_BPS) / 10_000);
+
+  return scaledFee / 1_000_000;
+}
 
 export function isValidDCAFields(fields: MoveStruct): fields is DCAContentFields {
   const expectedKeys: (keyof DCAContentFields)[] = [
@@ -118,9 +126,13 @@ export function getMillisecondsByDcaEveryParams(every: string, timeScale: number
   return new BigNumber(every).multipliedBy(milliseconds).toNumber();
 }
 
-export const fromArgument = (arg: Argument, idx: number) => ({
-  kind: arg.kind,
-  value: arg.value,
-  type: arg.type,
-  index: idx,
-});
+export const fromArgument = (arg: Argument, idx: number) => {
+  // console.log(`Processing argument at index ${idx}:`, arg);
+
+  return {
+    kind: arg.kind,
+    value: arg.value,
+    type: arg.type,
+    index: idx,
+  };
+};

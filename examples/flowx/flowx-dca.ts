@@ -1,4 +1,4 @@
-import { DCAManagerSingleton } from "../../src";
+import { DCAManagerSingleton, feeAmount } from "../../src";
 import { buildDcaTxBlock } from "../../src/managers/dca/adapters/flowxAdapter";
 import { LONG_SUI_COIN_TYPE } from "../../src/providers/common";
 import { FlowxSingleton } from "../../src/providers/flowx/flowx";
@@ -7,7 +7,6 @@ import { cacheOptions, initAndGetRedisStorage, provider, signAndExecuteTransacti
 import { delegateeKeypair, delegateeUser } from "../dca/common";
 
 const GAS_PROVISION = DCAManagerSingleton.DCA_MINIMUM_GAS_FUNDS;
-const BASE_FEES_BPS = 5;
 const DCA_ID = "0x4d0316c3a32221e175ab2bb9abe360ed1d4498806dc50984ab67ce0ba90f2842";
 
 // The transaction flow is the following when selling non-SUI OR SUI token for X:
@@ -27,7 +26,7 @@ export const flowx = async ({
   slippagePercentage: number;
   signerAddress: string;
 }) => {
-  const netAmount = parseFloat(amount) - fee_amount(parseFloat(amount));
+  const netAmount = parseFloat(amount) - feeAmount(parseFloat(amount));
 
   const storage = await initAndGetRedisStorage();
 
@@ -84,14 +83,7 @@ export const flowx = async ({
 flowx({
   tokenFrom: USDC_COIN_TYPE,
   tokenTo: LONG_SUI_COIN_TYPE,
-  amount: "1.333333",
+  amount: "0.333333",
   slippagePercentage: 10,
   signerAddress: user,
 });
-
-// eslint-disable-next-line
-function fee_amount(amount: number): number {
-  const scaledFee = Math.floor((amount * 1_000_000 * BASE_FEES_BPS) / 10_000);
-
-  return scaledFee / 1_000_000;
-}

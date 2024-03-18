@@ -403,6 +403,8 @@ export class RouteManager implements IRouteManager {
       dcaTradeGasCost,
     );
 
+    // TODO: Check that we do not need to set gas budget limit for tx
+
     return doctoredForDCATransactionBlock;
   }
 

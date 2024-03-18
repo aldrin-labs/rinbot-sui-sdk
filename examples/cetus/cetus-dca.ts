@@ -1,6 +1,6 @@
 import { CoinAsset } from "@cetusprotocol/cetus-sui-clmm-sdk";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { DCAManagerSingleton } from "../../src";
+import { DCAManagerSingleton, feeAmount } from "../../src";
 import { buildDcaTxBlock } from "../../src/managers/dca/adapters/cetusAdapter";
 import { CetusSingleton } from "../../src/providers/cetus/cetus";
 import { clmmMainnet } from "../../src/providers/cetus/config";
@@ -24,7 +24,6 @@ import { delegateeKeypair, delegateeUser } from "../dca/common";
 // 5. MergeCoins(Input coins)
 // 6. MergeCoins(Output coins)
 
-// TODO: These are dummy values
 const GAS_PROVISION = DCAManagerSingleton.DCA_MINIMUM_GAS_FUNDS;
 const DCA_ID = "0x4d0316c3a32221e175ab2bb9abe360ed1d4498806dc50984ab67ce0ba90f2842";
 
@@ -42,6 +41,8 @@ export const cetusDca = async ({
   slippagePercentage: number;
   signerAddress: string;
 }) => {
+  const netAmount = parseFloat(amount) - feeAmount(parseFloat(amount));
+
   const storage = await initAndGetRedisStorage();
 
   const cetus: CetusSingleton = await CetusSingleton.getInstance({
@@ -54,13 +55,10 @@ export const cetusDca = async ({
   const calculatedData = await cetus.getRouteData({
     coinTypeFrom: tokenFrom,
     coinTypeTo: tokenTo,
-    inputAmount: amount,
+    inputAmount: netAmount.toString(),
     slippagePercentage,
     publicKey: signerAddress,
   });
-
-  console.log(tokenFrom);
-  console.log(tokenTo);
 
   // const mockedAssets = getMockedAssets(tokenFrom, tokenTo);
 
@@ -94,7 +92,7 @@ export const cetusDca = async ({
 cetusDca({
   tokenFrom: USDC_COIN_TYPE,
   tokenTo: LONG_SUI_COIN_TYPE,
-  amount: "1.333333",
+  amount: "0.333333",
   slippagePercentage: 10,
   signerAddress: user,
 });

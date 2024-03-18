@@ -2,7 +2,7 @@ import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { TxBlock, Transaction, Arguments, Argument, Input } from "../txBlock";
 import { DCA_CONTRACT, fromArgument } from "../utils";
 
-const DCA_ROUTER = "cetus";
+const DCA_ROUTER = "cetus2";
 let InputIndex = 0;
 
 const swapPatterns: Record<string, `${string}::${string}::${string}`> = {
@@ -20,7 +20,7 @@ const checkPatterns: Record<string, `${string}::${string}::${string}`> = {
 type SwapParams = {
   globalConfig: Argument;
   poolA: Argument;
-  poolB: Argument;
+  poolB?: Argument;
   inputFunds: Argument;
   outputFunds: Argument;
   // If simple swap then exists, else no
@@ -29,8 +29,9 @@ type SwapParams = {
   amount0: Argument;
   amount1: Argument;
   sqrtPriceLimit0: Argument;
-  sqrtPriceLimit1: Argument;
+  sqrtPriceLimit1?: Argument;
   clock: Argument;
+  outputThreshold: Argument;
   dca: Argument;
   gasGost: Argument;
 };
@@ -79,8 +80,8 @@ export function buildDcaTxBlock(
     typeArguments: [tokenTo],
   });
 
+  const minOutput = findMinOutput(txBlock);
   const swapPatternRegex = new RegExp(Object.keys(swapPatterns).join("|"));
-  const checkPatternRegex = new RegExp(Object.keys(checkPatterns).join("|"));
 
   txBlock.blockData.transactions.forEach((transaction) => {
     if (transaction.kind === "MoveCall" && transaction.target) {
@@ -95,10 +96,10 @@ export function buildDcaTxBlock(
         if (isSimpleSwap) {
           // Check if the argument at index 6 (arguments[5]) has value "true" or "false"
           const argument6 = transaction.arguments[5];
-          if (argument6 && argument6.kind === "Input" && argument6.value === "true") {
+          if (argument6 && argument6.kind === "Input" && argument6.value === true) {
             // Modify the function name to swap_ab
             newTarget = `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_ab"}`;
-          } else if (argument6 && argument6.kind === "Input" && argument6.value === "false") {
+          } else if (argument6 && argument6.kind === "Input" && argument6.value === false) {
             // Modify the function name to swap_ba
             newTarget = `${DCA_CONTRACT}::${DCA_ROUTER}::${"swap_ba"}`;
           } else {
@@ -110,16 +111,15 @@ export function buildDcaTxBlock(
           ? {
               globalConfig: fromArgument(transaction.arguments[0] as Argument, inputIdx()),
               poolA: fromArgument(transaction.arguments[1] as Argument, inputIdx()),
-              poolB: fromArgument(transaction.arguments[2] as Argument, inputIdx()),
               inputFunds: { kind: "Result", index: 0 } as Argument,
               outputFunds: { kind: "Result", index: 1 } as Argument,
-              a2b: fromArgument(transaction.arguments[5] as Argument, inputIdx()),
-              byAmountIn: fromArgument(transaction.arguments[6] as Argument, inputIdx()),
-              amount0: fromArgument(transaction.arguments[7] as Argument, inputIdx()),
-              amount1: fromArgument(transaction.arguments[8] as Argument, inputIdx()),
-              sqrtPriceLimit0: fromArgument(transaction.arguments[9] as Argument, inputIdx()),
-              sqrtPriceLimit1: fromArgument(transaction.arguments[10] as Argument, inputIdx()),
-              clock: fromArgument(transaction.arguments[10] as Argument, inputIdx()),
+              a2b: fromArgument(transaction.arguments[4] as Argument, inputIdx()),
+              byAmountIn: fromArgument(transaction.arguments[5] as Argument, inputIdx()),
+              amount0: fromArgument(transaction.arguments[6] as Argument, inputIdx()),
+              amount1: fromArgument(transaction.arguments[7] as Argument, inputIdx()),
+              sqrtPriceLimit0: fromArgument(transaction.arguments[8] as Argument, inputIdx()),
+              clock: fromArgument(transaction.arguments[9] as Argument, inputIdx()),
+              outputThreshold: { kind: "Input", value: minOutput, index: inputIdx(), type: "pure" },
               dca: { kind: "Input", value: dcaId, index: inputIdx(), type: "object" },
               gasGost: { kind: "Input", value: gasCost, index: inputIdx(), type: "pure" },
             }
@@ -135,6 +135,7 @@ export function buildDcaTxBlock(
               sqrtPriceLimit0: fromArgument(transaction.arguments[8] as Argument, inputIdx()),
               sqrtPriceLimit1: fromArgument(transaction.arguments[9] as Argument, inputIdx()),
               clock: fromArgument(transaction.arguments[10] as Argument, inputIdx()),
+              outputThreshold: { kind: "Input", value: minOutput, index: inputIdx(), type: "pure" },
               dca: { kind: "Input", value: dcaId, index: inputIdx(), type: "object" },
               gasGost: { kind: "Input", value: gasCost, index: inputIdx(), type: "pure" },
             };
@@ -143,14 +144,13 @@ export function buildDcaTxBlock(
           ? [
               swapParams.globalConfig as Input,
               swapParams.poolA as Input,
-              swapParams.poolB as Input,
               swapParams.a2b as Input,
               swapParams.byAmountIn as Input,
               swapParams.amount0 as Input,
               swapParams.amount1 as Input,
               swapParams.sqrtPriceLimit0 as Input,
-              swapParams.sqrtPriceLimit1 as Input,
               swapParams.clock as Input,
+              swapParams.outputThreshold as Input,
               swapParams.dca as Input,
               swapParams.gasGost as Input,
             ]
@@ -164,6 +164,7 @@ export function buildDcaTxBlock(
               swapParams.sqrtPriceLimit0 as Input,
               swapParams.sqrtPriceLimit1 as Input,
               swapParams.clock as Input,
+              swapParams.outputThreshold as Input,
               swapParams.dca as Input,
               swapParams.gasGost as Input,
             ];
@@ -172,7 +173,6 @@ export function buildDcaTxBlock(
           ? [
               swapParams.globalConfig,
               swapParams.poolA,
-              swapParams.poolB,
               swapParams.inputFunds,
               swapParams.outputFunds,
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -182,23 +182,26 @@ export function buildDcaTxBlock(
               swapParams.amount0,
               swapParams.amount1,
               swapParams.sqrtPriceLimit0,
-              swapParams.sqrtPriceLimit1,
               swapParams.clock,
+              swapParams.outputThreshold,
               swapParams.dca,
               swapParams.gasGost,
             ]
           : [
               swapParams.globalConfig,
               swapParams.poolA,
-              swapParams.poolB,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              swapParams.poolB!,
               swapParams.inputFunds,
               swapParams.outputFunds,
               swapParams.byAmountIn,
               swapParams.amount0,
               swapParams.amount1,
               swapParams.sqrtPriceLimit0,
-              swapParams.sqrtPriceLimit1,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              swapParams.sqrtPriceLimit1!,
               swapParams.clock,
+              swapParams.outputThreshold,
               swapParams.dca,
               swapParams.gasGost,
             ];
@@ -212,52 +215,6 @@ export function buildDcaTxBlock(
 
         dcaBlock.inputs.push(...inputs);
         dcaBlock.transactions.push(tx);
-      } else {
-        const checkMatch = checkPatternRegex.exec(transaction.target);
-
-        if (checkMatch) {
-          const parts = transaction.target.split("::");
-          const newTarget: `${string}::${string}::${string}` = `${DCA_CONTRACT}::${DCA_ROUTER}::${parts[2]}`;
-
-          const arg1 = transaction.arguments[1] as {
-            kind: "Input";
-            index: number;
-            type: "object" | "pure" | undefined;
-            value: any;
-          };
-
-          const minOutputArg = {
-            kind: "Input",
-            // This is the value produced by the Cetus SDK
-            // that corresponds to the minOutput amount
-            value: arg1.value,
-            index: dcaBlock.inputs.length,
-            type: "pure",
-          };
-
-          const args: Arguments = [
-            {
-              kind: "NestedResult",
-              // this is the index of the swap transaction, which is 2,
-              // i.e. the third element in the transactoin vec
-              index: 2,
-              // second element in the result array corresponding to second tx,
-              // i.e this is the output funds
-              resultIndex: 1,
-            },
-            minOutputArg as Argument,
-          ];
-
-          const tx: Transaction = {
-            arguments: args,
-            kind: transaction.kind,
-            typeArguments: transaction.typeArguments,
-            target: newTarget,
-          };
-
-          dcaBlock.inputs.push(minOutputArg as Input);
-          dcaBlock.transactions.push(tx);
-        }
       }
     }
   });
@@ -270,4 +227,40 @@ export function buildDcaTxBlock(
 function inputIdx(): number {
   ++InputIndex;
   return InputIndex - 1;
+}
+
+// eslint-disable-next-line
+function findMinOutput(txBlock: TransactionBlock): number {
+  const checkPatternRegex = new RegExp(Object.keys(checkPatterns).join("|"));
+
+  for (const transaction of txBlock.blockData.transactions) {
+    if (transaction.kind === "MoveCall" && transaction.target) {
+      const checkMatch = checkPatternRegex.exec(transaction.target);
+
+      if (checkMatch) {
+        const arg1 = transaction.arguments[1] as {
+          kind: "Input";
+          index: number;
+          type: "object" | "pure" | undefined;
+          value: any;
+        };
+
+        // const minOutputArg = {
+        //   kind: "Input",
+        //   value: arg1.value,
+        //   index: dcaBlock.inputs.length, // Ensure `dcaBlock` is accessible or passed as a parameter
+        //   type: "pure",
+        // };
+        const minOutputArg = arg1.value;
+
+        // Push minOutputArg to dcaBlock.inputs (make sure dcaBlock is defined and accessible)
+        // dcaBlock.inputs.push(minOutputArg as Input);
+        // Assuming the purpose is just to return the minOutputArg
+        return minOutputArg;
+      }
+    }
+  }
+
+  // If the function hasn't returned by this point, no matching transaction was found
+  throw new Error("No suitable transaction found to extract minOutputArg.");
 }

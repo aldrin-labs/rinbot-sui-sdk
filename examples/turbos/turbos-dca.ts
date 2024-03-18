@@ -1,5 +1,5 @@
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { DCAManagerSingleton, LONG_SUI_COIN_TYPE } from "../../src";
+import { DCAManagerSingleton, LONG_SUI_COIN_TYPE, feeAmount } from "../../src";
 import { buildDcaTxBlock } from "../../src/managers/dca/adapters/turbosAdapter";
 import { TurbosSingleton } from "../../src/providers/turbos/turbos";
 import { USDC_COIN_TYPE } from "../coin-types";
@@ -38,12 +38,13 @@ const DCA_ID = "0x4d0316c3a32221e175ab2bb9abe360ed1d4498806dc50984ab67ce0ba90f28
 
   const coinTypeFrom: string = USDC_COIN_TYPE;
   const coinTypeTo: string = LONG_SUI_COIN_TYPE;
-  const inputAmount = "1.333333";
+  const inputAmount = "0.333333";
+  const netAmount = parseFloat(inputAmount) - feeAmount(parseFloat(inputAmount));
 
   const routeData = await turbos.getRouteData({
     coinTypeFrom,
     coinTypeTo,
-    inputAmount,
+    inputAmount: netAmount.toString(),
     publicKey: user,
     slippagePercentage: 10,
   });
@@ -69,10 +70,10 @@ const DCA_ID = "0x4d0316c3a32221e175ab2bb9abe360ed1d4498806dc50984ab67ce0ba90f28
   console.debug("\n\n\n\n\n");
   console.debug(`Final TxBlock: ${JSON.stringify(txBlockDca.blockData)}`);
 
-  // const res = await provider.devInspectTransactionBlock({
-  //   transactionBlock: txBlockDca,
-  //   sender: delegateeUser,
-  // });
-  const res = await signAndExecuteTransaction(txBlockDca, delegateeKeypair);
+  const res = await provider.devInspectTransactionBlock({
+    transactionBlock: txBlockDca,
+    sender: delegateeUser,
+  });
+  // const res = await signAndExecuteTransaction(txBlockDca, delegateeKeypair);
   console.debug("res: ", res);
 })();
