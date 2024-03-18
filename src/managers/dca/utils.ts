@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 
-import { MoveStruct, SuiObjectResponse, SuiParsedData } from "@mysten/sui.js/client";
+import { SuiObjectResponse, SuiParsedData } from "@mysten/sui.js/client";
 import BigNumber from "bignumber.js";
 import { TOKEN_ADDRESS_BASE_REGEX } from "../../providers/common";
 import { DCAContent, DCAContentFields, DCAResponse, DCATimescaleToMillisecondsMap } from "./types";
@@ -14,39 +14,35 @@ export function feeAmount(amount: number): number {
   return scaledFee / 1_000_000;
 }
 
-export function isValidDCAFields(fields: MoveStruct): fields is DCAContentFields {
-  const expectedKeys: (keyof DCAContentFields)[] = [
-    "active",
-    "input_balance",
-    "delegatee",
-    "every",
-    "gas_budget",
-    "id",
-    "last_time_ms",
-    "owner",
-    "remaining_orders",
-    "split_allocation",
-    "start_time_ms",
-    "time_scale",
-    "trade_params",
-  ];
-
+export function isValidDCAFields(fields: unknown): fields is DCAContentFields {
   return (
-    expectedKeys.every((key) => key in fields) &&
-    // the "active" in fields is the ts-check bypass for MoveStruct type
+    typeof fields === "object" &&
+    fields !== null &&
     "active" in fields &&
     typeof fields.active === "boolean" &&
+    "input_balance" in fields &&
     typeof fields.input_balance === "string" &&
+    "delegatee" in fields &&
     typeof fields.delegatee === "string" &&
+    "every" in fields &&
     typeof fields.every === "string" &&
+    "gas_budget" in fields &&
     typeof fields.gas_budget === "string" &&
-    typeof fields.id === "object" && // Assuming id is always an object
+    "id" in fields &&
+    typeof fields.id === "object" &&
+    "last_time_ms" in fields &&
     typeof fields.last_time_ms === "string" &&
+    "owner" in fields &&
     typeof fields.owner === "string" &&
+    "remaining_orders" in fields &&
     typeof fields.remaining_orders === "string" &&
+    "split_allocation" in fields &&
     typeof fields.split_allocation === "string" &&
+    "start_time_ms" in fields &&
     typeof fields.start_time_ms === "string" &&
+    "time_scale" in fields &&
     typeof fields.time_scale === "number" &&
+    "trade_params" in fields &&
     typeof fields.trade_params === "object" &&
     fields.trade_params !== null &&
     "type" in fields.trade_params &&
