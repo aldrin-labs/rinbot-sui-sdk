@@ -19,10 +19,10 @@ import { SUI_CLOCK_OBJECT_ID } from "@mysten/sui.js/utils";
  */
 export class RefundManagerSingleton {
   public static SIMLATION_ACCOUNT_ADDRESS = "0xca9711c3de3ef474209ebd920b894e4d374ff09e210bc31cbd2d266f7bff90ca";
-  public static REFUND_PACKAGE_ADDRESS = "0x2843d7add326ac31e71c75954b79a059aa13456946d26422a9fd20f75e06b468";
+  public static REFUND_PACKAGE_ADDRESS = "0x691f8797d421028d476a62e5680d85a2c666d9ca5f16c5036d316b7c5b9c4a22";
   public static REFUND_PACKAGE_ADDRESS_READ = "";
-  public static REFUND_POOL_OBJECT_ID = "0x82544a2f83c6ed1c1092d4b0e92837e2c3bd983228dd6529da632070b6657a97";
-  public static REFUND_POOL_PUBLISHER_OBJECT_ID = "0xf3f6708de5137be44e2dde8a2fd33e7ebd64398d55312414c7b0e3309367e378";
+  public static REFUND_POOL_OBJECT_ID = "0xc4d53c30dfcff1ce3b18f08114a6016552625d3f647ebb24fbde34175f373354";
+  public static REFUND_POOL_PUBLISHER_OBJECT_ID = "0xcfdd94c59c6a811d6b2fe3a927ff97871ef6a7fcc643e5880fe015b37ccbf12e";
   public static REFUND_BOOSTED_CLAIM_CAP_STRUCT_TYPE_NAME = "BoostedClaimCap";
   public static REFUND_MODULE_NAME = "refund";
   public static REFUND_BOOSTED_MODULE_NAME = "booster";
