@@ -362,16 +362,21 @@ export class FlowxSingleton extends EventEmitter implements IPoolProvider<FlowxS
    * @param {ExtendedSwapCalculatedOutputDataType} options.route - The route for the swap.
    * @param {string} options.publicKey - The public key for the swap.
    * @param {number} options.slippagePercentage - The slippage percentage.
+   * @param {string} options.resultObject — The input coin object to use in the swap transaction.
    * @return {Promise<TransactionBlock>} Swap transaction data.
    */
   public async getSwapTransactionDoctored({
     route,
     publicKey,
     slippagePercentage,
+    resultObject,
+    txb,
   }: {
     route: ExtendedSwapCalculatedOutputDataType;
     publicKey: string;
     slippagePercentage: number;
+    resultObject?: string;
+    txb?: TransactionBlock;
   }) {
     const absoluteSlippage = convertSlippage(slippagePercentage);
 
@@ -384,6 +389,8 @@ export class FlowxSingleton extends EventEmitter implements IPoolProvider<FlowxS
       route.tokenTo, // coin Out data
       publicKey,
       absoluteSlippage, // slippage (0.05%)
+      resultObject,
+      txb,
     );
 
     const txBlock = new TransactionBlock(TransactionBlock.from(legacyTxBlock.serialize()));
