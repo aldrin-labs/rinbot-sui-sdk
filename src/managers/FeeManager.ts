@@ -89,11 +89,7 @@ export class FeeManager {
   }): Awaited<GetTransactionType> {
     const tx = transaction ?? new TransactionBlock();
 
-    console.debug("\ntransactions before:", JSON.stringify(tx.blockData.transactions, null, 2));
-
     const [firstFeeObject, ...restFeeObjects] = fees;
-    console.debug("firstFeeObject:", firstFeeObject);
-    console.debug("restFeeObjects:", restFeeObjects);
 
     // Handle first fee object separately to define `txRes`. Otherwise TypeScript will say `txRes` is not defined.
     const [coin] = tx.splitCoins(tx.gas, [tx.pure(firstFeeObject.feeAmount)]);
@@ -103,8 +99,6 @@ export class FeeManager {
       const [coin] = tx.splitCoins(tx.gas, [tx.pure(feeAmount)]);
       txRes = tx.transferObjects([coin], tx.pure(feeCollectorAddress));
     });
-
-    console.debug("\ntransactions after:", JSON.stringify(tx.blockData.transactions, null, 2));
 
     return { tx, txRes };
   }
@@ -131,10 +125,7 @@ export class FeeManager {
   }): Awaited<GetTransactionType> & { resultObject: string } {
     const tx = transaction ?? new TransactionBlock();
 
-    console.debug("\ntransactions before:", JSON.stringify(tx.blockData.transactions, null, 2));
-
     const mergedCoinsStructure = getMergedCoinsStructure({ tx, coinObjects: allCoinObjectsList });
-    console.debug("\nmergedCoinsStructure:", JSON.stringify(mergedCoinsStructure, null, 2));
 
     let resultObject: string;
 
@@ -168,8 +159,6 @@ export class FeeManager {
       const [coin] = tx.splitCoins(tx.object(resultObject), [tx.pure(feeAmount)]);
       txRes = tx.transferObjects([coin], tx.pure(feeCollectorAddress));
     });
-
-    console.debug("\ntransactions after:", JSON.stringify(tx.blockData.transactions, null, 2));
 
     return { tx, txRes, resultObject };
   }
@@ -275,8 +264,6 @@ export class FeeManager {
     // doesn't set/calculate gas budger for their transactions properly.
     // We can do the simulation on our side, but it will slowdown the swap
     transaction.setGasBudget(SWAP_GAS_BUDGET);
-
-    console.debug("\ntransactions after routing:", JSON.stringify(transaction.blockData.transactions, null, 2));
 
     return transaction;
   }

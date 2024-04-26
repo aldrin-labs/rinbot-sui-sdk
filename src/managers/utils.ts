@@ -319,7 +319,6 @@ export const getMergedCoinsStructure = ({
 
   // Getting all the `MergeCoins` transactions
   const mergeCoinsTransactions = transactions.filter((tx) => tx.kind === "MergeCoins");
-  console.debug("\nmergeCoinsTransactions:", mergeCoinsTransactions);
 
   // Filtering the `MergeCoins` transactions such way, that are kept only those transactions,
   // in which participate `coinObjects`
@@ -343,7 +342,6 @@ export const getMergedCoinsStructure = ({
 
     return false;
   });
-  console.debug("\nrequiredCoinMerges:", requiredCoinMerges);
 
   if (requiredCoinMerges.length === 0) {
     return { noMerges: true };
@@ -445,7 +443,6 @@ export const mergeAllCoinsByStructure = ({
   const coinsToMerge = [...restDestinationObjects, ...structure.unusedSources].map((coinObject) =>
     tx.object(coinObject),
   );
-  console.debug("coinsToMerge:", coinsToMerge);
 
   if (coinsToMerge.length === 0) {
     return { tx, destinationObject: firstDestinationObject };
@@ -474,7 +471,6 @@ export const getAmountIncludingFees = ({
   }
 
   const resultFeeAmountInMist = getResultFeesAmountInMist(fee);
-  console.debug("\nresultFeeAmountInMist:", resultFeeAmountInMist);
 
   return new BigNumber(fullAmount)
     .minus(new BigNumber(resultFeeAmountInMist).dividedBy(10 ** fee.tokenFromDecimals))

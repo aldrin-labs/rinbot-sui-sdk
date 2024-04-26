@@ -237,7 +237,6 @@ export class RouteManager implements IRouteManager {
     const useFee = fee !== undefined;
 
     const amountIncludingFees = getAmountIncludingFees({ fee, fullAmount: amount });
-    console.debug("\namountInCludingFees:", amountIncludingFees);
 
     const { maxOutputProvider, route, maxOutputAmount } = await this.getBestRouteData({
       tokenFrom,
