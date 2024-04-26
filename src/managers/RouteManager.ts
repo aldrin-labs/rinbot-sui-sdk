@@ -202,7 +202,6 @@ export class RouteManager implements IRouteManager {
     return { maxOutputProvider, maxOutputAmount, route };
   }
 
-  // TODO: Update description about fees
   /**
    * @public
    * @method getBestRouteTransaction
