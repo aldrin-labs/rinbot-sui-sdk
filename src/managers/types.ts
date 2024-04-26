@@ -1,3 +1,4 @@
+import { CoinStruct } from "@mysten/sui.js/client";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { AftermathSingleton } from "../providers/aftermath/aftermath";
 import { CetusSingleton } from "../providers/cetus/cetus";
@@ -85,4 +86,21 @@ export type BestRouteData = {
   maxOutputProvider: Provider;
   maxOutputAmount: bigint;
   route: TryCatchWrapperResult;
+};
+
+export type NonEmptyArray<T> = [T, ...T[]];
+
+export type MergedCoinsStructure = {
+  destinations: NonEmptyArray<string>;
+  sources: NonEmptyArray<string>;
+  unusedSources: string[];
+};
+
+export type SwapFee = {
+  tokenFromDecimals: number;
+  fees: NonEmptyArray<{
+    feeAmount: string;
+    feeCollectorAddress: string;
+  }>;
+  tokenFromCoinObjects?: CoinStruct[];
 };
