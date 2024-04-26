@@ -1,15 +1,13 @@
-import { CoinStruct } from "@mysten/sui.js/client";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import BigNumber from "bignumber.js";
 import { NoRoutesError } from "../errors/NoRoutesError";
 import { CetusSingleton } from "../providers/cetus/cetus";
-import { SUI_DENOMINATOR, SWAP_GAS_BUDGET } from "../providers/common";
-import { isSuiCoinType } from "../providers/utils/isSuiCoinType";
-import { CoinManagerSingleton } from "./coin/CoinManager";
-import { BestRouteData, IRouteManager, Provider, Providers, ProvidersToRouteDataMap } from "./types";
-import { getFiltredProviders, getRouterMaps, tokenFromIsTokenTo } from "./utils";
+import { SWAP_GAS_BUDGET } from "../providers/common";
 import { TryCatchWrapperResult } from "../providers/types";
+import { isSuiCoinType } from "../providers/utils/isSuiCoinType";
 import { FeeManager } from "./FeeManager";
+import { CoinManagerSingleton } from "./coin/CoinManager";
+import { BestRouteData, IRouteManager, Provider, Providers, ProvidersToRouteDataMap, SwapFee } from "./types";
+import { getAmountIncludingFees, getFiltredProviders, getRouterMaps, tokenFromIsTokenTo } from "./utils";
 
 /**
  * @class RouteManager
@@ -204,6 +202,7 @@ export class RouteManager implements IRouteManager {
     return { maxOutputProvider, maxOutputAmount, route };
   }
 
+  // TODO: Update description about fees
   /**
    * @public
    * @method getBestRouteTransaction
@@ -214,7 +213,7 @@ export class RouteManager implements IRouteManager {
    * @param {string} options.amount - The amount to swap.
    * @param {number} options.slippagePercentage - The slippage percentage.
    * @param {string} options.signerAddress - The address of the signer.
-   * @param {object} options.fee - The fee in SUI that would be deducted from user's account
+   * @param {SwapFee} options.fee - The fees that should be deducted from user's account
    * @return {Promise<{ tx: TransactionBlock, outputAmount: bigint, providerName: string }>} A promise that resolves
    * to the object with transaction block for the swap, calculated output amount and the name of the provider, making
    * the swap.
@@ -233,72 +232,93 @@ export class RouteManager implements IRouteManager {
     amount: string;
     slippagePercentage: number;
     signerAddress: string;
-    fee?: {
-      feeAmount: string;
-      feeCollectorAddress: string;
-      tokenFromCoinObjects?: CoinStruct[];
-      tokenFromDecimals?: number;
-    };
+    fee?: SwapFee;
   }): Promise<{ tx: TransactionBlock; outputAmount: bigint; providerName: string }> {
-    // Note: this works only for sui
-    const amountInCludingFees =
-      fee && isSuiCoinType(tokenFrom)
-        ? new BigNumber(amount).minus(new BigNumber(fee.feeAmount).dividedBy(SUI_DENOMINATOR)).toString()
-        : amount;
+    const useFee = fee !== undefined;
+
+    const amountIncludingFees = getAmountIncludingFees({ fee, fullAmount: amount });
+    console.debug("\namountInCludingFees:", amountIncludingFees);
 
     const { maxOutputProvider, route, maxOutputAmount } = await this.getBestRouteData({
       tokenFrom,
       tokenTo,
-      amount: amountInCludingFees,
+      amount: amountIncludingFees,
       slippagePercentage,
       signerAddress,
     });
 
-    const transaction = await maxOutputProvider.getSwapTransaction({
-      route,
-      publicKey: signerAddress,
-      slippagePercentage,
-    });
+    const maxOutputProviderName = maxOutputProvider.providerName;
 
-    // This is the limitation because some of the providers
-    // doesn't set/calculate gas budger for their transactions properly.
-    // We can do the simulation on our side, but it will slowdown the swap
-    transaction.setGasBudget(SWAP_GAS_BUDGET);
+    if (!useFee) {
+      const transaction = await maxOutputProvider.getSwapTransaction({
+        route,
+        publicKey: signerAddress,
+        slippagePercentage,
+      });
 
-    // TODO: Remove that into the FeeManager
-    if (fee) {
-      const { feeAmount, feeCollectorAddress, tokenFromCoinObjects, tokenFromDecimals } = fee;
+      // This is the limitation because some of the providers
+      // doesn't set/calculate gas budger for their transactions properly.
+      // We can do the simulation on our side, but it will slowdown the swap
+      transaction.setGasBudget(SWAP_GAS_BUDGET);
 
-      if (isSuiCoinType(tokenFrom)) {
-        const { tx } = await FeeManager.getFeeInSuiTransaction({
-          transaction,
-          fee: {
-            feeAmountInMIST: feeAmount,
-            feeCollectorAddress,
-          },
-        });
-        return { tx, outputAmount: maxOutputAmount, providerName: maxOutputProvider.providerName };
-        // This else is not expected to work since it's impossible to split and merge the same coin
-      } else if (!isSuiCoinType(tokenFrom) && tokenFromCoinObjects?.length && typeof tokenFromDecimals === "number") {
-        const { tx } = await FeeManager.getFeeInCoinTransaction({
-          transaction,
-          fee: {
-            feeAmount: feeAmount,
-            feeCollectorAddress,
-            allCoinObjectsList: tokenFromCoinObjects,
-          },
-        });
-        return { tx, outputAmount: maxOutputAmount, providerName: maxOutputProvider.providerName };
-      } else {
-        console.warn(
-          "[getBestRouteTransaction] unexpected behaviour: params for fees object is not correctly provided",
-        );
-
-        throw new Error("Unexpected params getBestRouteTransaction");
-      }
+      return {
+        tx: transaction,
+        outputAmount: maxOutputAmount,
+        providerName: maxOutputProviderName,
+      };
     }
 
-    return { tx: transaction, outputAmount: maxOutputAmount, providerName: maxOutputProvider.providerName };
+    const maxProviderIsTurbosOrFlowx = maxOutputProviderName === "Turbos" || maxOutputProviderName === "Flowx";
+    const feeInSui = isSuiCoinType(tokenFrom);
+
+    const { tokenFromCoinObjects: coinObjects, fees } = fee;
+    const coinObjectsProvided = coinObjects !== undefined && coinObjects.length !== 0;
+
+    let transaction: TransactionBlock;
+
+    /**
+     * In case the maximum output provider is Turbos or FlowX, and the fees must be charged in any coin except of SUI,
+     * we need to charge fees first, and then add the swap transactions (this requires using doctored methods).
+     *
+     * It's required because:
+     *
+     * 1. Turbos merges all the coin objects it needs, and after that it wraps the result coin object to a MoveVec,
+     * what makes this result coin object unaccessible, so we cannot use it even in case we need it for fees charging
+     * (e.g. for splitting it).
+     * Because of that we first merge all the coin objects into the result coin object, and then pass this result
+     * coin object into a doctored Turbos get-swap-transaction-method. This way Turbos MoveVec wrapping doesn't stop
+     * us to charge the fees, because we've charged them before the MoveVec wrap.
+     *
+     * 2. FlowX merges all the coin objects it needs, and after that it transfers the result coin object back
+     * to the user, what also makes it unaccessible, so we also cannot use it even in case we need it for fees charging
+     * (e.g. for splitting it).
+     * Because of that we first merge all the coin objects into the result coin object, and then pass this result
+     * coin object into a doctored FlowX get-swap-transaction-method. This way the FlowX result coin object transferring
+     * doesn't stop us to charge the fees, because we've charged them before the result coin object transfer.
+     *
+     * In any other case we can first get the swap transactions, and then add the fees charing transaction to them.
+     */
+    if (maxProviderIsTurbosOrFlowx && !feeInSui && coinObjectsProvided) {
+      transaction = await FeeManager.getTransactionWithFeesBeforeSwap({
+        coinObjects,
+        fees,
+        maxOutputProvider,
+        route,
+        signerAddress,
+        slippagePercentage,
+      });
+    } else {
+      transaction = await FeeManager.getTransactionWithFeesAfterSwap({
+        fee,
+        maxOutputProvider,
+        route,
+        signerAddress,
+        slippagePercentage,
+        tokenFrom,
+      });
+    }
+
+    return { tx: transaction, outputAmount: maxOutputAmount, providerName: maxOutputProviderName };
   }
 
   /**
