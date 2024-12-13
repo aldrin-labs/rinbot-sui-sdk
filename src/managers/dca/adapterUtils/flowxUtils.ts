@@ -114,6 +114,8 @@ export const swapExactInputDoctored = async (
   coinOut: CoinMetadata,
   account: string,
   valueSlippage: number,
+  resultObject?: string,
+  transaction?: TransactionBlock,
 ) => {
   try {
     const slipageVal = valueSlippage > 100 ? 100 : valueSlippage < 0 ? 0 : valueSlippage;
@@ -144,7 +146,16 @@ export const swapExactInputDoctored = async (
           account,
           "",
         )
-      : await getArgsSwapExactOutput(amountIn.decimalAmount, amountOut.decimalAmount, trades, coinIn, account, "");
+      : await getArgsSwapExactOutput(
+          amountIn.decimalAmount,
+          amountOut.decimalAmount,
+          trades,
+          coinIn,
+          account,
+          "",
+          resultObject,
+          transaction,
+        );
 
     // console.log('=======> Swap Args ==========>');
     // console.log('Args: ', args);
@@ -229,8 +240,18 @@ const getArgsSwapExactOutput = async (
   coinIn: CoinMetadata,
   account: string,
   recipient: string,
+  resultObject?: string,
+  transaction?: TransactionBlock,
 ): Promise<SwapArgs> => {
-  const { coin: coinObjectId, tx } = await handleGetCoinAmount(amountInMax, account, coinIn.type!);
+  let { coin: coinObjectId, tx } = await handleGetCoinAmount(amountInMax, account, coinIn.type!);
+
+  if (transaction !== undefined) {
+    tx = transaction;
+  }
+
+  if (resultObject !== undefined) {
+    coinObjectId = resultObject;
+  }
 
   const typeArguments: any[] = [coinIn.type];
   trades?.forEach((item) => {

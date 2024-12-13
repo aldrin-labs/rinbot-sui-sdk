@@ -75,7 +75,11 @@ function getFunctionNameAndTypeArguments(pools: Pool.Types[], coinTypeA: string,
 }
 
 // eslint-disable-next-line
-export async function swapDoctored(sdk: TurbosSdk, options: Trade.SwapOptions): Promise<TransactionBlock> {
+export async function swapDoctored(
+  sdk: TurbosSdk,
+  options: Trade.SwapOptions,
+  inputCoinIds: string[] = [],
+): Promise<TransactionBlock> {
   const { coinTypeA, coinTypeB, address, amountSpecifiedIsInput, slippage } = options;
   const amountA = new Decimal(options.amountA);
   const amountB = new Decimal(options.amountB);
@@ -99,7 +103,7 @@ export async function swapDoctored(sdk: TurbosSdk, options: Trade.SwapOptions): 
   );
   console.log("Got Routes");
   // Doctoring the coinIDs --> empty array
-  const coinIds: string[] = [];
+  const coinIds: string[] = inputCoinIds;
   const { functionName, typeArguments } = getFunctionNameAndTypeArguments(
     routes.map(({ typeArguments }) => typeArguments),
     coinTypeA,

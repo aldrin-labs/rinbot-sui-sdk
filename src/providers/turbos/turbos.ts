@@ -474,33 +474,43 @@ export class TurbosSingleton extends EventEmitter implements IPoolProvider<Turbo
    *
    * @public
    * @async
-   * @param {SwapRequiredData} swapRequiredData - The required data for the swap.
+   * @param {SwapRequiredData} route - The required data for the swap.
    * @param {string} publicKey - The public key of the user.
    * @param {number} [slippagePercentage=10] - The slippage percentage.
+   * @param {string[]} inputCoinIds — The input coin object ids.
    * @return {Promise<TransactionBlock>} A Promise that resolves to a TransactionBlock.
    */
   public async getSwapTransactionDoctored({
     route,
     publicKey,
     slippagePercentage = 10,
+    inputCoinIds,
+    txb,
   }: {
     route: SwapRequiredData;
     publicKey: string;
     slippagePercentage: number;
+    inputCoinIds?: string[];
+    txb?: TransactionBlock;
   }): Promise<TransactionBlock> {
     const { pool, outputAmount, nextTickIndex, inputAmountWithDecimals, tokenFromIsTokenA } = route;
     const parsedSlippage: string = convertSlippage(slippagePercentage).toString();
 
-    const transaction: TransactionBlock = await swapDoctored(this.turbosSdk, {
-      routes: [{ pool: pool.poolId, a2b: tokenFromIsTokenA, nextTickIndex }],
-      coinTypeA: tokenFromIsTokenA ? pool.coinTypeA : pool.coinTypeB,
-      coinTypeB: tokenFromIsTokenA ? pool.coinTypeB : pool.coinTypeA,
-      address: publicKey,
-      amountA: inputAmountWithDecimals,
-      amountB: outputAmount.toString(),
-      amountSpecifiedIsInput: true,
-      slippage: parsedSlippage,
-    });
+    const transaction: TransactionBlock = await swapDoctored(
+      this.turbosSdk,
+      {
+        routes: [{ pool: pool.poolId, a2b: tokenFromIsTokenA, nextTickIndex }],
+        coinTypeA: tokenFromIsTokenA ? pool.coinTypeA : pool.coinTypeB,
+        coinTypeB: tokenFromIsTokenA ? pool.coinTypeB : pool.coinTypeA,
+        address: publicKey,
+        amountA: inputAmountWithDecimals,
+        amountB: outputAmount.toString(),
+        amountSpecifiedIsInput: true,
+        slippage: parsedSlippage,
+        txb,
+      },
+      inputCoinIds,
+    );
 
     return transaction;
   }
